@@ -1,11 +1,11 @@
-package com.example.demo.service;
+package br.com.icev.aed.service;
 
 import br.edu.icev.aed.forense.Alerta;
 import br.edu.icev.aed.forense.AnaliseForenseAvancada;
-import com.example.demo.entity.TestesTrabalho;
-import com.example.demo.entity.Trabalho;
-import com.example.demo.repository.TestesTrabalhoRepository;
-import com.example.demo.repository.TrabalhoRepository;
+import br.com.icev.aed.entity.TestesTrabalho;
+import br.com.icev.aed.entity.Trabalho;
+import br.com.icev.aed.repository.TestesTrabalhoRepository;
+import br.com.icev.aed.repository.TrabalhoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 @Service
 public class TestesUnitariosService {
@@ -24,11 +27,41 @@ public class TestesUnitariosService {
     private static final Logger logger = LoggerFactory.getLogger(TestesUnitariosService.class);
     private static final String ARQUIVO_LOGS = "arquivo_logs.csv";
     
+    // Timeout de 30 segundos por desafio para evitar loops infinitos
+    private static final int TIMEOUT_SEGUNDOS = 30;
+    
     @Autowired
     private TrabalhoRepository trabalhoRepository;
     
     @Autowired
     private TestesTrabalhoRepository testesTrabalhoRepository;
+    
+    /**
+     * Executa um teste com timeout para proteger contra loops infinitos ou travamentos
+     */
+    private <T> T executarComTimeout(Callable<T> tarefa, String nomeDesafio) throws Exception {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<T> future = executor.submit(tarefa);
+        
+        try {
+            return future.get(TIMEOUT_SEGUNDOS, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            throw new Exception("TIMEOUT: " + nomeDesafio + " excedeu " + TIMEOUT_SEGUNDOS + " segundos (possível loop infinito)");
+        } catch (ExecutionException e) {
+            Throwable causa = e.getCause();
+            if (causa instanceof Exception) {
+                throw (Exception) causa;
+            }
+            throw new Exception("Erro ao executar " + nomeDesafio + ": " + causa.getMessage());
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            Thread.currentThread().interrupt();
+            throw new Exception("Execução de " + nomeDesafio + " foi interrompida");
+        } finally {
+            executor.shutdownNow();
+        }
+    }
     
     /**
      * Executa 50 testes unitários (10 por desafio) em um trabalho específico
@@ -79,49 +112,119 @@ public class TestesUnitariosService {
             // Executa os testes para cada desafio
             Map<String, Double> pontosPorDesafio = new HashMap<>();
             
-            // Desafio 1
+            // Desafio 1 - Com timeout
             try {
-                pontosPorDesafio.put("Desafio 1", testarDesafio1(instancia, classe, caminhoLogs, resultado));
+                Object instanciaFinal = instancia;
+                Class<?> classeFinal = classe;
+                String logsPathFinal = caminhoLogs;
+                StringBuilder resultadoFinal = resultado;
+                
+                double pontos = executarComTimeout(() -> 
+                    testarDesafio1(instanciaFinal, classeFinal, logsPathFinal, resultadoFinal), 
+                    "Desafio 1"
+                );
+                pontosPorDesafio.put("Desafio 1", pontos);
             } catch (Exception e) {
                 resultado.append("=== DESAFIO 1: ERRO ===\n");
-                resultado.append("Erro: ").append(e.getMessage()).append("\n\n");
+                resultado.append("Erro: ").append(e.getMessage()).append("\n");
+                if (e.getMessage().contains("TIMEOUT")) {
+                    resultado.append("⚠️  O código do aluno pode ter um loop infinito ou está muito lento.\n");
+                }
+                resultado.append("\n");
                 pontosPorDesafio.put("Desafio 1", 0.0);
+                logger.error("Erro no Desafio 1: {}", e.getMessage());
             }
             
-            // Desafio 2
+            // Desafio 2 - Com timeout
             try {
-                pontosPorDesafio.put("Desafio 2", testarDesafio2(instancia, classe, caminhoLogs, resultado));
+                Object instanciaFinal = instancia;
+                Class<?> classeFinal = classe;
+                String logsPathFinal = caminhoLogs;
+                StringBuilder resultadoFinal = resultado;
+                
+                double pontos = executarComTimeout(() -> 
+                    testarDesafio2(instanciaFinal, classeFinal, logsPathFinal, resultadoFinal), 
+                    "Desafio 2"
+                );
+                pontosPorDesafio.put("Desafio 2", pontos);
             } catch (Exception e) {
                 resultado.append("=== DESAFIO 2: ERRO ===\n");
-                resultado.append("Erro: ").append(e.getMessage()).append("\n\n");
+                resultado.append("Erro: ").append(e.getMessage()).append("\n");
+                if (e.getMessage().contains("TIMEOUT")) {
+                    resultado.append("⚠️  O código do aluno pode ter um loop infinito ou está muito lento.\n");
+                }
+                resultado.append("\n");
                 pontosPorDesafio.put("Desafio 2", 0.0);
+                logger.error("Erro no Desafio 2: {}", e.getMessage());
             }
             
-            // Desafio 3
+            // Desafio 3 - Com timeout
             try {
-                pontosPorDesafio.put("Desafio 3", testarDesafio3(instancia, classe, caminhoLogs, resultado));
+                Object instanciaFinal = instancia;
+                Class<?> classeFinal = classe;
+                String logsPathFinal = caminhoLogs;
+                StringBuilder resultadoFinal = resultado;
+                
+                double pontos = executarComTimeout(() -> 
+                    testarDesafio3(instanciaFinal, classeFinal, logsPathFinal, resultadoFinal), 
+                    "Desafio 3"
+                );
+                pontosPorDesafio.put("Desafio 3", pontos);
             } catch (Exception e) {
                 resultado.append("=== DESAFIO 3: ERRO ===\n");
-                resultado.append("Erro: ").append(e.getMessage()).append("\n\n");
+                resultado.append("Erro: ").append(e.getMessage()).append("\n");
+                if (e.getMessage().contains("TIMEOUT")) {
+                    resultado.append("⚠️  O código do aluno pode ter um loop infinito ou está muito lento.\n");
+                }
+                resultado.append("\n");
                 pontosPorDesafio.put("Desafio 3", 0.0);
+                logger.error("Erro no Desafio 3: {}", e.getMessage());
             }
             
-            // Desafio 4
+            // Desafio 4 - Com timeout
             try {
-                pontosPorDesafio.put("Desafio 4", testarDesafio4(instancia, classe, caminhoLogs, resultado));
+                Object instanciaFinal = instancia;
+                Class<?> classeFinal = classe;
+                String logsPathFinal = caminhoLogs;
+                StringBuilder resultadoFinal = resultado;
+                
+                double pontos = executarComTimeout(() -> 
+                    testarDesafio4(instanciaFinal, classeFinal, logsPathFinal, resultadoFinal), 
+                    "Desafio 4"
+                );
+                pontosPorDesafio.put("Desafio 4", pontos);
             } catch (Exception e) {
                 resultado.append("=== DESAFIO 4: ERRO ===\n");
-                resultado.append("Erro: ").append(e.getMessage()).append("\n\n");
+                resultado.append("Erro: ").append(e.getMessage()).append("\n");
+                if (e.getMessage().contains("TIMEOUT")) {
+                    resultado.append("⚠️  O código do aluno pode ter um loop infinito ou está muito lento.\n");
+                }
+                resultado.append("\n");
                 pontosPorDesafio.put("Desafio 4", 0.0);
+                logger.error("Erro no Desafio 4: {}", e.getMessage());
             }
             
-            // Desafio 5
+            // Desafio 5 - Com timeout
             try {
-                pontosPorDesafio.put("Desafio 5", testarDesafio5(instancia, classe, caminhoLogs, resultado));
+                Object instanciaFinal = instancia;
+                Class<?> classeFinal = classe;
+                String logsPathFinal = caminhoLogs;
+                StringBuilder resultadoFinal = resultado;
+                
+                double pontos = executarComTimeout(() -> 
+                    testarDesafio5(instanciaFinal, classeFinal, logsPathFinal, resultadoFinal), 
+                    "Desafio 5"
+                );
+                pontosPorDesafio.put("Desafio 5", pontos);
             } catch (Exception e) {
                 resultado.append("=== DESAFIO 5: ERRO ===\n");
-                resultado.append("Erro: ").append(e.getMessage()).append("\n\n");
+                resultado.append("Erro: ").append(e.getMessage()).append("\n");
+                if (e.getMessage().contains("TIMEOUT")) {
+                    resultado.append("⚠️  O código do aluno pode ter um loop infinito ou está muito lento.\n");
+                }
+                resultado.append("\n");
                 pontosPorDesafio.put("Desafio 5", 0.0);
+                logger.error("Erro no Desafio 5: {}", e.getMessage());
             }
             
             // Calcula soma total dos pontos (máximo 70 pontos)
@@ -156,14 +259,83 @@ public class TestesUnitariosService {
             response.put("pontosPorDesafio", pontosPorDesafio);
             return response;
             
-        } catch (Exception e) {
+        } catch (OutOfMemoryError e) {
+            // Protege contra estouro de memória
+            String msgErro = "ERRO CRÍTICO: O código do aluno causou estouro de memória (OutOfMemoryError). " +
+                           "Isso pode indicar criação excessiva de objetos ou estruturas de dados muito grandes.";
+            
+            testeExecucao.setHorarioFim(LocalDateTime.now());
+            testeExecucao.setStatusExecucao("CRITICAL_ERROR");
+            testeExecucao.setResultado(msgErro);
+            testeExecucao.setPontuacao(0.0);
+            testesTrabalhoRepository.save(testeExecucao);
+            
+            logger.error("OutOfMemoryError ao executar testes: {}", e.getMessage());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("resultado", msgErro);
+            response.put("pontuacao", 0.0);
+            response.put("erro", "OutOfMemoryError");
+            return response;
+            
+        } catch (StackOverflowError e) {
+            // Protege contra stack overflow (recursão infinita)
+            String msgErro = "ERRO CRÍTICO: O código do aluno causou estouro de pilha (StackOverflowError). " +
+                           "Isso geralmente indica recursão infinita ou recursão muito profunda.";
+            
+            testeExecucao.setHorarioFim(LocalDateTime.now());
+            testeExecucao.setStatusExecucao("CRITICAL_ERROR");
+            testeExecucao.setResultado(msgErro);
+            testeExecucao.setPontuacao(0.0);
+            testesTrabalhoRepository.save(testeExecucao);
+            
+            logger.error("StackOverflowError ao executar testes: {}", e.getMessage());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("resultado", msgErro);
+            response.put("pontuacao", 0.0);
+            response.put("erro", "StackOverflowError");
+            return response;
+            
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            // Classe ou método não encontrado
+            String msgErro = "ERRO: A classe ou método esperado não foi encontrado no JAR do aluno. " +
+                           "Verifique se a classe implementa a interface AnaliseForenseAvancada corretamente. " +
+                           "Detalhes: " + e.getMessage();
+            
             testeExecucao.setHorarioFim(LocalDateTime.now());
             testeExecucao.setStatusExecucao("ERROR");
-            testeExecucao.setResultado("ERRO: " + e.getMessage());
+            testeExecucao.setResultado(msgErro);
+            testeExecucao.setPontuacao(0.0);
+            testesTrabalhoRepository.save(testeExecucao);
+            
+            logger.error("Classe/Método não encontrado: {}", e.getMessage());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("resultado", msgErro);
+            response.put("pontuacao", 0.0);
+            response.put("erro", "ClassNotFoundException/NoSuchMethodException");
+            return response;
+            
+        } catch (Exception e) {
+            // Qualquer outra exceção
+            String msgErro = "ERRO: Falha ao executar os testes. " +
+                           "Isso pode ser causado por: JAR corrompido, dependências faltando, " +
+                           "exceção não tratada no código do aluno. Detalhes: " + e.getMessage();
+            
+            testeExecucao.setHorarioFim(LocalDateTime.now());
+            testeExecucao.setStatusExecucao("ERROR");
+            testeExecucao.setResultado(msgErro);
+            testeExecucao.setPontuacao(0.0);
             testesTrabalhoRepository.save(testeExecucao);
             
             logger.error("Erro ao executar testes unitários: {}", e.getMessage(), e);
-            throw new RuntimeException("Erro ao executar testes unitários: " + e.getMessage(), e);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("resultado", msgErro);
+            response.put("pontuacao", 0.0);
+            response.put("erro", e.getClass().getSimpleName());
+            return response;
         }
     }
     

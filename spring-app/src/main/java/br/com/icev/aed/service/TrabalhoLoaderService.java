@@ -1,7 +1,7 @@
-package com.example.demo.service;
+package br.com.icev.aed.service;
 
-import com.example.demo.entity.Trabalho;
-import com.example.demo.repository.TrabalhoRepository;
+import br.com.icev.aed.entity.Trabalho;
+import br.com.icev.aed.repository.TrabalhoRepository;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

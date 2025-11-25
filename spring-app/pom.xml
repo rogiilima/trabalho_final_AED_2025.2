@@ -12,11 +12,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.example</groupId>
-    <artifactId>demo</artifactId>
+    <groupId>br.com.icev</groupId>
+    <artifactId>aed-avaliacao</artifactId>
     <version>1.0.0</version>
-    <name>Demo Spring Boot</name>
-    <description>Hello World com Spring Boot</description>
+    <name>Sistema de Avaliação AED</name>
+    <description>Sistema automatizado de avaliação de trabalhos de AED</description>
 
     <properties>
         <java.version>21</java.version>
@@ -67,6 +67,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>br.com.icev.aed.AedApplication</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>

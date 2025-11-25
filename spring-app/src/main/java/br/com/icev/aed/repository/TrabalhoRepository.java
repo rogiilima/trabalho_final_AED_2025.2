@@ -1,6 +1,6 @@
-package com.example.demo.repository;
+package br.com.icev.aed.repository;
 
-import com.example.demo.entity.Trabalho;
+import br.com.icev.aed.entity.Trabalho;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

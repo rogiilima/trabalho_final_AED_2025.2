@@ -1,11 +1,11 @@
-package com.example.demo.controller;
+package br.com.icev.aed.controller;
 
-import com.example.demo.entity.Trabalho;
-import com.example.demo.repository.TrabalhoRepository;
-import com.example.demo.service.TrabalhoLoaderService;
-import com.example.demo.service.TesteTrabalhoService;
-import com.example.demo.service.TestesUnitariosService;
-import com.example.demo.service.TestesEficienciaService;
+import br.com.icev.aed.entity.Trabalho;
+import br.com.icev.aed.repository.TrabalhoRepository;
+import br.com.icev.aed.service.TrabalhoLoaderService;
+import br.com.icev.aed.service.TesteTrabalhoService;
+import br.com.icev.aed.service.TestesUnitariosService;
+import br.com.icev.aed.service.TestesEficienciaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

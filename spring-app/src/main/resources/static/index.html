@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Avaliação - Trabalhos AED</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .trabalho-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .trabalho-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .trabalho-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .trabalho-id {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .trabalho-titulo {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+        }
+        
+        .alunos-info {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .aluno-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 3px 12px;
+            border-radius: 15px;
+            margin-right: 8px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .status-testado {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-nao-testado {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .info-row {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            color: #666;
+        }
+        
+        .info-row i {
+            width: 25px;
+            color: #667eea;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-action {
+            flex: 1;
+            min-width: 150px;
+            font-weight: 500;
+        }
+        
+        .btn-test-unit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        
+        .btn-test-unit:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            color: white;
+        }
+        
+        .btn-test-efic {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+        }
+        
+        .btn-test-efic:hover {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+        
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .test-all-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .test-all-section h3 {
+            margin-bottom: 15px;
+        }
+        
+        .btn-test-all {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 0 10px;
+        }
+        
+        .btn-test-all:hover {
+            background: #f8f9fa;
+            color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <div class="header">
+                <h1><i class="fas fa-graduation-cap"></i> Sistema de Avaliação Automatizada</h1>
+                <p>Trabalho 2 - Algoritmos  e Estrutura de Dados I</p>
+            </div>
+            
+            <!-- Estatísticas -->
+            <div class="stats-container" id="statsContainer">
+                <div class="stat-card">
+                    <i class="fas fa-folder-open"></i>
+                    <div class="stat-number" id="totalTrabalhos">0</div>
+                    <div class="stat-label">Trabalhos Cadastrados</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="stat-number" id="trabalhosTestados">0</div>
+                    <div class="stat-label">Trabalhos Testados</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <div class="stat-number" id="totalAlunos">0</div>
+                    <div class="stat-label">Alunos</div>
+                </div>
+            </div>
+            
+            <!-- Testar Todos -->
+            <div class="test-all-section">
+                <h3><i class="fas fa-rocket"></i> Testar Todos os Trabalhos</h3>
+                <p>Execute os testes em todos os trabalhos de uma vez</p>
+                <button class="btn btn-test-all" onclick="testarTodosUnitarios()">
+                    <i class="fas fa-clipboard-check"></i> Testes Unitários (Todos)
+                </button>
+                <button class="btn btn-test-all" onclick="testarTodosEficiencia()">
+                    <i class="fas fa-tachometer-alt"></i> Testes de Eficiência (Todos)
+                </button>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="filter-section">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="searchInput" placeholder="🔍 Buscar por título ou matrícula...">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="filterStatus">
+                            <option value="">Todos os Status</option>
+                            <option value="testado">Testados</option>
+                            <option value="nao-testado">Não Testados</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100" onclick="carregarTrabalhos()">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>Carregando trabalhos...</p>
+            </div>
+            
+            <!-- Lista de Trabalhos -->
+            <div id="trabalhosList"></div>
+            
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fas fa-inbox"></i>
+                <h3>Nenhum trabalho encontrado</h3>
+                <p>Adicione arquivos JAR na pasta projetos_alunos/ e reinicie a aplicação</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let trabalhos = [];
+        
+        // Carregar trabalhos ao iniciar
+        $(document).ready(function() {
+            carregarTrabalhos();
+            
+            // Filtro de busca
+            $('#searchInput').on('keyup', function() {
+                filtrarTrabalhos();
+            });
+            
+            // Filtro de status
+            $('#filterStatus').on('change', function() {
+                filtrarTrabalhos();
+            });
+        });
+        
+        function carregarTrabalhos() {
+            $('#loading').show();
+            $('#trabalhosList').empty();
+            $('#emptyState').hide();
+            
+            $.ajax({
+                url: '/api/trabalhos',
+                method: 'GET',
+                success: function(data) {
+                    trabalhos = data;
+                    $('#loading').hide();
+                    
+                    if (trabalhos.length === 0) {
+                        $('#emptyState').show();
+                    } else {
+                        atualizarEstatisticas();
+                        exibirTrabalhos(trabalhos);
+                    }
+                },
+                error: function(error) {
+                    $('#loading').hide();
+                    alert('Erro ao carregar trabalhos: ' + error.responseText);
+                }
+            });
+        }
+        
+        function atualizarEstatisticas() {
+            const total = trabalhos.length;
+            const testados = trabalhos.filter(t => t.testado).length;
+            
+            let totalAlunos = 0;
+            trabalhos.forEach(t => {
+                if (t.matriculaAluno1) totalAlunos++;
+                if (t.matriculaAluno2) totalAlunos++;
+                if (t.matriculaAluno3) totalAlunos++;
+            });
+            
+            $('#totalTrabalhos').text(total);
+            $('#trabalhosTestados').text(testados);
+            $('#totalAlunos').text(totalAlunos);
+        }
+        
+        function exibirTrabalhos(lista) {
+            const container = $('#trabalhosList');
+            container.empty();
+            
+            lista.forEach(trabalho => {
+                const card = criarCardTrabalho(trabalho);
+                container.append(card);
+            });
+        }
+        
+        function criarCardTrabalho(trabalho) {
+            const alunos = [trabalho.matriculaAluno1, trabalho.matriculaAluno2, trabalho.matriculaAluno3]
+                .filter(m => m != null);
+            
+            const alunosBadges = alunos.map(m => 
+                `<span class="aluno-badge"><i class="fas fa-user"></i> ${m}</span>`
+            ).join('');
+            
+            const statusClass = trabalho.testado ? 'status-testado' : 'status-nao-testado';
+            const statusText = trabalho.testado ? '✓ Testado' : '✗ Não Testado';
+            
+            const dataTeste = trabalho.dataTeste ? 
+                new Date(trabalho.dataTeste).toLocaleString('pt-BR') : 'Nunca';
+            
+            return `
+                <div class="trabalho-card">
+                    <div class="trabalho-header">
+                        <span class="trabalho-id">ID: ${trabalho.id}</span>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    
+                    <div class="trabalho-titulo">${trabalho.titulo || 'Sem título'}</div>
+                    
+                    <div class="alunos-info">
+                        <strong><i class="fas fa-users"></i> Alunos:</strong><br>
+                        ${alunosBadges}
+                    </div>
+                    
+                    <div class="info-row">
+                        <i class="fas fa-code"></i>
+                        <span><strong>Classe:</strong> ${trabalho.classeQueImplementa}</span>
+                    </div>
+                    
+                    <div class="info-row">
+                        <i class="fas fa-file-archive"></i>
+                        <span><strong>JAR:</strong> ${trabalho.caminhoParaJar.split('/').pop()}</span>
+                    </div>
+                    
+                    <div class="info-row">
+                        <i class="fas fa-clock"></i>
+                        <span><strong>Último teste:</strong> ${dataTeste}</span>
+                    </div>
+                    
+                    ${trabalho.resultadoTestes ? `
+                    <div class="info-row">
+                        <i class="fas fa-info-circle"></i>
+                        <span><strong>Status:</strong> ${trabalho.statusTeste || 'N/A'}</span>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-action btn-test-unit" onclick="testarUnitario(${trabalho.id})">
+                            <i class="fas fa-clipboard-check"></i> Testes Unitários
+                        </button>
+                        <button class="btn btn-action btn-test-efic" onclick="testarEficiencia(${trabalho.id})">
+                            <i class="fas fa-tachometer-alt"></i> Testes de Eficiência
+                        </button>
+                        <button class="btn btn-action btn-info" onclick="verDetalhes(${trabalho.id})">
+                            <i class="fas fa-eye"></i> Ver Detalhes
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function filtrarTrabalhos() {
+            const searchTerm = $('#searchInput').val().toLowerCase();
+            const statusFilter = $('#filterStatus').val();
+            
+            let filtrados = trabalhos.filter(t => {
+                const matchSearch = !searchTerm || 
+                    t.titulo.toLowerCase().includes(searchTerm) ||
+                    t.matriculaAluno1?.includes(searchTerm) ||
+                    t.matriculaAluno2?.includes(searchTerm) ||
+                    t.matriculaAluno3?.includes(searchTerm);
+                
+                const matchStatus = !statusFilter ||
+                    (statusFilter === 'testado' && t.testado) ||
+                    (statusFilter === 'nao-testado' && !t.testado);
+                
+                return matchSearch && matchStatus;
+            });
+            
+            if (filtrados.length === 0) {
+                $('#emptyState').show();
+                $('#trabalhosList').empty();
+            } else {
+                $('#emptyState').hide();
+                exibirTrabalhos(filtrados);
+            }
+        }
+        
+        function testarUnitario(id) {
+            if (!confirm('Deseja executar os testes unitários? (50 testes)')) return;
+            
+            const btn = event.target.closest('button');
+            const originalText = $(btn).html();
+            $(btn).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Testando...');
+            
+            $.ajax({
+                url: `/api/trabalhos/${id}/testar-unitarios`,
+                method: 'POST',
+                success: function(data) {
+                    alert(`✅ Testes Unitários Concluídos!\n\nPontuação: ${data.pontuacao.toFixed(2)}/70.00 pontos\n\nDetalhes:\n${formatarPontosPorDesafio(data.pontosPorDesafio)}`);
+                    carregarTrabalhos();
+                },
+                error: function(error) {
+                    alert('❌ Erro ao executar testes: ' + (error.responseJSON?.erro || error.responseText));
+                    $(btn).prop('disabled', false).html(originalText);
+                }
+            });
+        }
+        
+        function testarEficiencia(id) {
+            if (!confirm('Deseja executar os testes de eficiência? (1000 execuções - pode demorar)')) return;
+            
+            const btn = event.target.closest('button');
+            const originalText = $(btn).html();
+            $(btn).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Testando...');
+            
+            $.ajax({
+                url: `/api/trabalhos/${id}/testar-eficiencia`,
+                method: 'POST',
+                success: function(data) {
+                    alert(`✅ Testes de Eficiência Concluídos!\n\nPontuação: ${data.pontuacao.toFixed(2)}/40.00 pontos\n\nDetalhes:\n${formatarPontosPorDesafio(data.pontosPorDesafio)}`);
+                    carregarTrabalhos();
+                },
+                error: function(error) {
+                    alert('❌ Erro ao executar testes: ' + (error.responseJSON?.erro || error.responseText));
+                    $(btn).prop('disabled', false).html(originalText);
+                }
+            });
+        }
+        
+        function testarTodosUnitarios() {
+            if (!confirm(`Deseja executar testes unitários em TODOS os ${trabalhos.length} trabalhos?\nIsso pode demorar alguns minutos.`)) return;
+            
+            alert('⏳ Executando testes em todos os trabalhos... Aguarde!');
+            
+            $.ajax({
+                url: '/api/trabalhos/testar-unitarios-todos',
+                method: 'POST',
+                success: function(data) {
+                    const sucessos = data.resultados.filter(r => r.status === 'SUCCESS').length;
+                    const erros = data.resultados.filter(r => r.status === 'ERROR').length;
+                    alert(`✅ Testes concluídos!\n\nTotal: ${data.total}\nSucessos: ${sucessos}\nErros: ${erros}`);
+                    carregarTrabalhos();
+                },
+                error: function(error) {
+                    alert('❌ Erro: ' + (error.responseJSON?.erro || error.responseText));
+                }
+            });
+        }
+        
+        function testarTodosEficiencia() {
+            if (!confirm(`Deseja executar testes de eficiência em TODOS os ${trabalhos.length} trabalhos?\nIsso pode demorar vários minutos.`)) return;
+            
+            alert('⏳ Executando testes em todos os trabalhos... Aguarde!');
+            
+            $.ajax({
+                url: '/api/trabalhos/testar-eficiencia-todos',
+                method: 'POST',
+                success: function(data) {
+                    alert(`✅ Testes de eficiência concluídos!\n\nTotal: ${data.total} trabalhos testados`);
+                    carregarTrabalhos();
+                },
+                error: function(error) {
+                    alert('❌ Erro: ' + (error.responseJSON?.erro || error.responseText));
+                }
+            });
+        }
+        
+        function verDetalhes(id) {
+            window.location.href = `/detalhes.html?id=${id}`;
+        }
+        
+        function formatarPontosPorDesafio(pontos) {
+            let resultado = '';
+            for (const [desafio, pontuacao] of Object.entries(pontos)) {
+                resultado += `${desafio}: ${pontuacao.toFixed(2)} pontos\n`;
+            }
+            return resultado;
+        }
+    </script>
+</body>
+</html>
