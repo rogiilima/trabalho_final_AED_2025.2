@@ -293,12 +293,22 @@
             <div class="test-all-section">
                 <h3><i class="fas fa-rocket"></i> Testar Todos os Trabalhos</h3>
                 <p>Execute os testes em todos os trabalhos de uma vez</p>
-                <button class="btn btn-test-all" onclick="testarTodosUnitarios()">
-                    <i class="fas fa-clipboard-check"></i> Testes Unitários (Todos)
-                </button>
-                <button class="btn btn-test-all" onclick="testarTodosEficiencia()">
-                    <i class="fas fa-tachometer-alt"></i> Testes de Eficiência (Todos)
-                </button>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-test-all" onclick="executarTudoAsync()" style="background: linear-gradient(135deg, #fa8bff 0%, #2bd2ff 90%); color: white; font-size: 1.2em; padding: 15px 40px;">
+                        <i class="fas fa-bolt"></i> EXECUTAR TUDO (Assíncrono)
+                    </button>
+                    <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
+                        ⚡ Executa testes unitários + eficiência para todos os trabalhos em threads separadas
+                    </div>
+                </div>
+                <div style="border-top: 2px solid rgba(255,255,255,0.3); padding-top: 20px; margin-top: 20px;">
+                    <button class="btn btn-test-all" onclick="testarTodosUnitarios()">
+                        <i class="fas fa-clipboard-check"></i> Testes Unitários (Todos)
+                    </button>
+                    <button class="btn btn-test-all" onclick="testarTodosEficiencia()">
+                        <i class="fas fa-tachometer-alt"></i> Testes de Eficiência (Todos)
+                    </button>
+                </div>
             </div>
             
             <!-- Filtros -->
@@ -592,6 +602,70 @@
                 resultado += `${desafio}: ${pontuacao.toFixed(2)} pontos\n`;
             }
             return resultado;
+        }
+        
+        // NOVA FUNÇÃO: Executar TUDO de forma assíncrona
+        function executarTudoAsync() {
+            if (!confirm(`🚀 EXECUTAR TODOS OS TESTES EM TODOS OS TRABALHOS?\n\n` +
+                        `Esta operação irá:\n` +
+                        `✓ Executar testes UNITÁRIOS (70 pontos)\n` +
+                        `✓ Executar testes de EFICIÊNCIA (40 pontos)\n` +
+                        `✓ Para TODOS os ${trabalhos.length} trabalhos\n` +
+                        `✓ Em threads SEPARADAS (assíncrono)\n\n` +
+                        `⚠️ A execução acontecerá em background.\n` +
+                        `Você receberá uma confirmação e poderá atualizar a página para ver o progresso.\n\n` +
+                        `Deseja continuar?`)) {
+                return;
+            }
+            
+            // Mostra loading
+            $('body').append(`
+                <div id="asyncLoading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                     background: rgba(102, 126, 234, 0.9); z-index: 9999; display: flex; 
+                     flex-direction: column; justify-content: center; align-items: center; color: white;">
+                    <div class="loading-spinner" style="width: 80px; height: 80px; border-width: 8px;"></div>
+                    <h2 style="margin-top: 20px;">🚀 Iniciando Execução Assíncrona...</h2>
+                    <p style="font-size: 1.2em;">Aguarde enquanto as threads são criadas</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: '/api/trabalhos/executar-tudo-async',
+                method: 'POST',
+                timeout: 5000, // 5 segundos de timeout (só para iniciar)
+                success: function(data) {
+                    $('#asyncLoading').remove();
+                    
+                    let mensagemTrabalhos = '';
+                    if (data.trabalhos && data.trabalhos.length > 0) {
+                        mensagemTrabalhos = '\n\n📋 TRABALHOS QUE SERÃO TESTADOS:\n';
+                        data.trabalhos.forEach((t, i) => {
+                            mensagemTrabalhos += `${i+1}. ${t.titulo} - ${t.alunos}\n`;
+                        });
+                    }
+                    
+                    alert(`✅ ${data.mensagem}\n\n` +
+                          `📊 Status: ${data.status}\n` +
+                          `📁 Total de trabalhos: ${data.totalTrabalhos}\n\n` +
+                          `${data.descricao}${mensagemTrabalhos}\n\n` +
+                          `💡 DICA: Clique em "Atualizar" periodicamente para acompanhar o progresso!`);
+                    
+                    // Auto-atualizar a cada 10 segundos
+                    let intervalo = setInterval(() => {
+                        carregarTrabalhos();
+                    }, 10000);
+                    
+                    // Para após 5 minutos
+                    setTimeout(() => {
+                        clearInterval(intervalo);
+                    }, 300000);
+                },
+                error: function(error) {
+                    $('#asyncLoading').remove();
+                    alert('❌ Erro ao iniciar execução assíncrona:\n' + 
+                          (error.responseJSON?.erro || error.responseJSON?.mensagem || error.responseText || 'Erro desconhecido'));
+                }
+            });
         }
     </script>
 </body>

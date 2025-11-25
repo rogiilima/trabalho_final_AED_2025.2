@@ -285,4 +285,71 @@ public class TrabalhoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(erro);
         }
     }
+    
+    // POST - Executar TODOS os testes (unitários + eficiência) para TODOS os trabalhos de forma ASSÍNCRONA
+    @PostMapping("/executar-tudo-async")
+    public ResponseEntity<?> executarTudoAsync() {
+        List<Trabalho> trabalhos = trabalhoRepository.findAll();
+        
+        if (trabalhos.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("mensagem", "Nenhum trabalho encontrado para testar");
+            response.put("status", "INFO");
+            return ResponseEntity.ok(response);
+        }
+        
+        // Inicia execução assíncrona em thread separada para cada trabalho
+        new Thread(() -> {
+            for (Trabalho trabalho : trabalhos) {
+                final Long trabalhoId = trabalho.getId();
+                
+                // Thread separada para cada trabalho
+                new Thread(() -> {
+                    try {
+                        // Executa testes unitários
+                        testesUnitariosService.executarTestesUnitarios(trabalhoId);
+                        
+                        // Aguarda 2 segundos entre testes unitários e eficiência
+                        Thread.sleep(2000);
+                        
+                        // Executa testes de eficiência
+                        testesEficienciaService.executarTestesEficiencia(trabalhoId);
+                        
+                    } catch (Exception e) {
+                        System.err.println("Erro ao executar testes do trabalho " + trabalhoId + ": " + e.getMessage());
+                    }
+                }, "TestThread-Trabalho-" + trabalhoId).start();
+                
+                // Aguarda 1 segundo antes de iniciar próximo trabalho
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }, "MainTestThread").start();
+        
+        // Retorna imediatamente informando que os testes foram iniciados
+        Map<String, Object> response = new HashMap<>();
+        response.put("mensagem", "Execução de testes iniciada com sucesso!");
+        response.put("status", "RUNNING");
+        response.put("totalTrabalhos", trabalhos.size());
+        response.put("descricao", "Os testes estão sendo executados em background. " +
+                                  "Cada trabalho terá uma thread separada. " +
+                                  "Atualize a página periodicamente para ver os resultados.");
+        
+        List<Map<String, Object>> trabalhosInfo = new ArrayList<>();
+        for (Trabalho t : trabalhos) {
+            Map<String, Object> info = new HashMap<>();
+            info.put("id", t.getId());
+            info.put("titulo", t.getTitulo());
+            info.put("alunos", t.getMatriculaAluno1() + 
+                    (t.getMatriculaAluno2() != null ? ", " + t.getMatriculaAluno2() : "") +
+                    (t.getMatriculaAluno3() != null ? ", " + t.getMatriculaAluno3() : ""));
+            trabalhosInfo.add(info);
+        }
+        response.put("trabalhos", trabalhosInfo);
+        
+        return ResponseEntity.ok(response);
+    }
 }
