@@ -32,7 +32,7 @@ public class TestesEficienciaService {
     private TestesTrabalhoRepository testesTrabalhoRepository;
 
     // Número de execuções para cada teste
-    private static final int NUMERO_EXECUCOES = 200;
+    private static final int NUMERO_EXECUCOES = 500;
 
     // Thresholds de performance em milissegundos (tempo máximo aceitável)
     private static final double THRESHOLD_DESAFIO_1 = 50.0;   // Set - 50ms
@@ -92,7 +92,7 @@ public class TestesEficienciaService {
             // DESAFIO 1: Encontrar Sessões Inválidas
             try {
                 resultado.append("\n=== DESAFIO 1: Encontrar Sessões Inválidas (200 execuções) ===\n");
-                EstatisticasExecucao stats1 = executarTesteDesafio1(instancia, caminhoArquivo);
+                EstatisticasExecucao stats1 = executarTesteDesafio1(instancia, caminhoArquivo, trabalho);
                 double pontos1 = calcularPontuacao(stats1.getTempoMedio(), THRESHOLD_DESAFIO_1);
                 pontosPorDesafio.put("Desafio 1", pontos1);
                 
@@ -105,7 +105,7 @@ public class TestesEficienciaService {
             // DESAFIO 2: Reconstruir Linha do Tempo
             try {
                 resultado.append("\n=== DESAFIO 2: Reconstruir Linha do Tempo (200 execuções) ===\n");
-                EstatisticasExecucao stats2 = executarTesteDesafio2(instancia, caminhoArquivo);
+                EstatisticasExecucao stats2 = executarTesteDesafio2(instancia, caminhoArquivo, trabalho);
                 double pontos2 = calcularPontuacao(stats2.getTempoMedio(), THRESHOLD_DESAFIO_2);
                 pontosPorDesafio.put("Desafio 2", pontos2);
                 
@@ -118,7 +118,7 @@ public class TestesEficienciaService {
             // DESAFIO 3: Priorizar Alertas
             try {
                 resultado.append("\n=== DESAFIO 3: Priorizar Alertas (200 execuções) ===\n");
-                EstatisticasExecucao stats3 = executarTesteDesafio3(instancia, caminhoArquivo);
+                EstatisticasExecucao stats3 = executarTesteDesafio3(instancia, caminhoArquivo, trabalho);
                 double pontos3 = calcularPontuacao(stats3.getTempoMedio(), THRESHOLD_DESAFIO_3);
                 pontosPorDesafio.put("Desafio 3", pontos3);
                 
@@ -131,7 +131,7 @@ public class TestesEficienciaService {
             // DESAFIO 4: Encontrar Picos de Transferência
             try {
                 resultado.append("\n=== DESAFIO 4: Encontrar Picos de Transferência (200 execuções) ===\n");
-                EstatisticasExecucao stats4 = executarTesteDesafio4(instancia, caminhoArquivo);
+                EstatisticasExecucao stats4 = executarTesteDesafio4(instancia, caminhoArquivo, trabalho);
                 double pontos4 = calcularPontuacao(stats4.getTempoMedio(), THRESHOLD_DESAFIO_4);
                 pontosPorDesafio.put("Desafio 4", pontos4);
                 
@@ -144,7 +144,7 @@ public class TestesEficienciaService {
             // DESAFIO 5: Rastrear Contaminação
             try {
                 resultado.append("\n=== DESAFIO 5: Rastrear Contaminação (200 execuções) ===\n");
-                EstatisticasExecucao stats5 = executarTesteDesafio5(instancia, caminhoArquivo);
+                EstatisticasExecucao stats5 = executarTesteDesafio5(instancia, caminhoArquivo, trabalho);
                 double pontos5 = calcularPontuacao(stats5.getTempoMedio(), THRESHOLD_DESAFIO_5);
                 pontosPorDesafio.put("Desafio 5", pontos5);
                 
@@ -219,15 +219,37 @@ public class TestesEficienciaService {
     /**
      * Executa o Desafio 1 múltiplas vezes e coleta estatísticas
      */
-    private EstatisticasExecucao executarTesteDesafio1(AnaliseForenseAvancada instancia, String caminhoArquivo) throws Exception {
+    private EstatisticasExecucao executarTesteDesafio1(AnaliseForenseAvancada instancia, String caminhoArquivo, Trabalho trabalho) throws Exception {
         List<Long> tempos = new ArrayList<>();
         Object resultado = null;
 
         for (int i = 0; i < NUMERO_EXECUCOES; i++) {
-            long inicio = System.nanoTime();
+            LocalDateTime inicio = LocalDateTime.now();
+            long tempoInicio = System.nanoTime();
+            
             resultado = instancia.encontrarSessoesInvalidas(caminhoArquivo);
-            long fim = System.nanoTime();
-            tempos.add(fim - inicio);
+            
+            long tempoFim = System.nanoTime();
+            LocalDateTime fim = LocalDateTime.now();
+            double tempoMs = (tempoFim - tempoInicio) / 1_000_000.0;
+            tempos.add(tempoFim - tempoInicio);
+            
+            // Salvar registro individual no banco
+            TestesTrabalho testeIndividual = new TestesTrabalho();
+            testeIndividual.setTrabalho(trabalho);
+            testeIndividual.setHorarioInicio(inicio);
+            testeIndividual.setHorarioFim(fim);
+            testeIndividual.setStatusExecucao("COMPLETED");
+            testeIndividual.setCategoria("EFICIENCIA_DESAFIO_1");
+            testeIndividual.setQuantidadeTestesUnitarios(i + 1); // Número da execução
+            testeIndividual.setPontuacao(tempoMs);
+            testeIndividual.setResultado(String.format("Execução %d - Tempo: %.2f ms", i + 1, tempoMs));
+            testesTrabalhoRepository.save(testeIndividual);
+            
+            // Sleep de 2 segundos entre execuções
+            if (i < NUMERO_EXECUCOES - 1) {
+                Thread.sleep(2000);
+            }
         }
 
         return calcularEstatisticas(tempos, resultado);
@@ -236,15 +258,37 @@ public class TestesEficienciaService {
     /**
      * Executa o Desafio 2 múltiplas vezes e coleta estatísticas
      */
-    private EstatisticasExecucao executarTesteDesafio2(AnaliseForenseAvancada instancia, String caminhoArquivo) throws Exception {
+    private EstatisticasExecucao executarTesteDesafio2(AnaliseForenseAvancada instancia, String caminhoArquivo, Trabalho trabalho) throws Exception {
         List<Long> tempos = new ArrayList<>();
         Object resultado = null;
 
         for (int i = 0; i < NUMERO_EXECUCOES; i++) {
-            long inicio = System.nanoTime();
+            LocalDateTime inicio = LocalDateTime.now();
+            long tempoInicio = System.nanoTime();
+            
             resultado = instancia.reconstruirLinhaTempo(caminhoArquivo, "alice");
-            long fim = System.nanoTime();
-            tempos.add(fim - inicio);
+            
+            long tempoFim = System.nanoTime();
+            LocalDateTime fim = LocalDateTime.now();
+            double tempoMs = (tempoFim - tempoInicio) / 1_000_000.0;
+            tempos.add(tempoFim - tempoInicio);
+            
+            // Salvar registro individual no banco
+            TestesTrabalho testeIndividual = new TestesTrabalho();
+            testeIndividual.setTrabalho(trabalho);
+            testeIndividual.setHorarioInicio(inicio);
+            testeIndividual.setHorarioFim(fim);
+            testeIndividual.setStatusExecucao("COMPLETED");
+            testeIndividual.setCategoria("EFICIENCIA_DESAFIO_2");
+            testeIndividual.setQuantidadeTestesUnitarios(i + 1);
+            testeIndividual.setPontuacao(tempoMs);
+            testeIndividual.setResultado(String.format("Execução %d - Tempo: %.2f ms", i + 1, tempoMs));
+            testesTrabalhoRepository.save(testeIndividual);
+            
+            // Sleep de 2 segundos entre execuções
+            if (i < NUMERO_EXECUCOES - 1) {
+                Thread.sleep(2000);
+            }
         }
 
         return calcularEstatisticas(tempos, resultado);
@@ -253,15 +297,37 @@ public class TestesEficienciaService {
     /**
      * Executa o Desafio 3 múltiplas vezes e coleta estatísticas
      */
-    private EstatisticasExecucao executarTesteDesafio3(AnaliseForenseAvancada instancia, String caminhoArquivo) throws Exception {
+    private EstatisticasExecucao executarTesteDesafio3(AnaliseForenseAvancada instancia, String caminhoArquivo, Trabalho trabalho) throws Exception {
         List<Long> tempos = new ArrayList<>();
         Object resultado = null;
 
         for (int i = 0; i < NUMERO_EXECUCOES; i++) {
-            long inicio = System.nanoTime();
+            LocalDateTime inicio = LocalDateTime.now();
+            long tempoInicio = System.nanoTime();
+            
             resultado = instancia.priorizarAlertas(caminhoArquivo, 5);
-            long fim = System.nanoTime();
-            tempos.add(fim - inicio);
+            
+            long tempoFim = System.nanoTime();
+            LocalDateTime fim = LocalDateTime.now();
+            double tempoMs = (tempoFim - tempoInicio) / 1_000_000.0;
+            tempos.add(tempoFim - tempoInicio);
+            
+            // Salvar registro individual no banco
+            TestesTrabalho testeIndividual = new TestesTrabalho();
+            testeIndividual.setTrabalho(trabalho);
+            testeIndividual.setHorarioInicio(inicio);
+            testeIndividual.setHorarioFim(fim);
+            testeIndividual.setStatusExecucao("COMPLETED");
+            testeIndividual.setCategoria("EFICIENCIA_DESAFIO_3");
+            testeIndividual.setQuantidadeTestesUnitarios(i + 1);
+            testeIndividual.setPontuacao(tempoMs);
+            testeIndividual.setResultado(String.format("Execução %d - Tempo: %.2f ms", i + 1, tempoMs));
+            testesTrabalhoRepository.save(testeIndividual);
+            
+            // Sleep de 2 segundos entre execuções
+            if (i < NUMERO_EXECUCOES - 1) {
+                Thread.sleep(2000);
+            }
         }
 
         return calcularEstatisticas(tempos, resultado);
@@ -270,15 +336,37 @@ public class TestesEficienciaService {
     /**
      * Executa o Desafio 4 múltiplas vezes e coleta estatísticas
      */
-    private EstatisticasExecucao executarTesteDesafio4(AnaliseForenseAvancada instancia, String caminhoArquivo) throws Exception {
+    private EstatisticasExecucao executarTesteDesafio4(AnaliseForenseAvancada instancia, String caminhoArquivo, Trabalho trabalho) throws Exception {
         List<Long> tempos = new ArrayList<>();
         Object resultado = null;
 
         for (int i = 0; i < NUMERO_EXECUCOES; i++) {
-            long inicio = System.nanoTime();
+            LocalDateTime inicio = LocalDateTime.now();
+            long tempoInicio = System.nanoTime();
+            
             resultado = instancia.encontrarPicosTransferencia(caminhoArquivo);
-            long fim = System.nanoTime();
-            tempos.add(fim - inicio);
+            
+            long tempoFim = System.nanoTime();
+            LocalDateTime fim = LocalDateTime.now();
+            double tempoMs = (tempoFim - tempoInicio) / 1_000_000.0;
+            tempos.add(tempoFim - tempoInicio);
+            
+            // Salvar registro individual no banco
+            TestesTrabalho testeIndividual = new TestesTrabalho();
+            testeIndividual.setTrabalho(trabalho);
+            testeIndividual.setHorarioInicio(inicio);
+            testeIndividual.setHorarioFim(fim);
+            testeIndividual.setStatusExecucao("COMPLETED");
+            testeIndividual.setCategoria("EFICIENCIA_DESAFIO_4");
+            testeIndividual.setQuantidadeTestesUnitarios(i + 1);
+            testeIndividual.setPontuacao(tempoMs);
+            testeIndividual.setResultado(String.format("Execução %d - Tempo: %.2f ms", i + 1, tempoMs));
+            testesTrabalhoRepository.save(testeIndividual);
+            
+            // Sleep de 2 segundos entre execuções
+            if (i < NUMERO_EXECUCOES - 1) {
+                Thread.sleep(2000);
+            }
         }
 
         return calcularEstatisticas(tempos, resultado);
@@ -287,15 +375,37 @@ public class TestesEficienciaService {
     /**
      * Executa o Desafio 5 múltiplas vezes e coleta estatísticas
      */
-    private EstatisticasExecucao executarTesteDesafio5(AnaliseForenseAvancada instancia, String caminhoArquivo) throws Exception {
+    private EstatisticasExecucao executarTesteDesafio5(AnaliseForenseAvancada instancia, String caminhoArquivo, Trabalho trabalho) throws Exception {
         List<Long> tempos = new ArrayList<>();
         Object resultado = null;
 
         for (int i = 0; i < NUMERO_EXECUCOES; i++) {
-            long inicio = System.nanoTime();
+            LocalDateTime inicio = LocalDateTime.now();
+            long tempoInicio = System.nanoTime();
+            
             resultado = instancia.rastrearContaminacao(caminhoArquivo, "eve", "bob");
-            long fim = System.nanoTime();
-            tempos.add(fim - inicio);
+            
+            long tempoFim = System.nanoTime();
+            LocalDateTime fim = LocalDateTime.now();
+            double tempoMs = (tempoFim - tempoInicio) / 1_000_000.0;
+            tempos.add(tempoFim - tempoInicio);
+            
+            // Salvar registro individual no banco
+            TestesTrabalho testeIndividual = new TestesTrabalho();
+            testeIndividual.setTrabalho(trabalho);
+            testeIndividual.setHorarioInicio(inicio);
+            testeIndividual.setHorarioFim(fim);
+            testeIndividual.setStatusExecucao("COMPLETED");
+            testeIndividual.setCategoria("EFICIENCIA_DESAFIO_5");
+            testeIndividual.setQuantidadeTestesUnitarios(i + 1);
+            testeIndividual.setPontuacao(tempoMs);
+            testeIndividual.setResultado(String.format("Execução %d - Tempo: %.2f ms", i + 1, tempoMs));
+            testesTrabalhoRepository.save(testeIndividual);
+            
+            // Sleep de 2 segundos entre execuções
+            if (i < NUMERO_EXECUCOES - 1) {
+                Thread.sleep(2000);
+            }
         }
 
         return calcularEstatisticas(tempos, resultado);
