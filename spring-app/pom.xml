@@ -46,6 +46,20 @@
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-community-dialects</artifactId>
         </dependency>
+
+        <!-- Reflections for scanning classes -->
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+        </dependency>
+        
+        <!-- Interface Analise Forense AED -->
+        <dependency>
+            <groupId>br.edu.icev.aed</groupId>
+            <artifactId>analise-forense-aed</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

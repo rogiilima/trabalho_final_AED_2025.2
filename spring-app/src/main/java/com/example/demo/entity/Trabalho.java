@@ -25,6 +25,21 @@ public class Trabalho {
     @Column(name = "matricula_aluno3")
     private String matriculaAluno3;
     
+    @Column(name = "classe_que_implementa")
+    private String classeQueImplementa;
+    
+    @Column(name = "testado")
+    private Boolean testado = false;
+    
+    @Column(name = "data_teste")
+    private String dataTeste;
+    
+    @Column(name = "resultado_testes", columnDefinition = "TEXT")
+    private String resultadoTestes;
+    
+    @Column(name = "status_teste")
+    private String statusTeste; // SUCCESS, FAILED, ERROR
+    
     @Column(columnDefinition = "TEXT")
     private String descricao;
     
@@ -89,6 +104,46 @@ public class Trabalho {
         this.matriculaAluno3 = matriculaAluno3;
     }
     
+    public String getClasseQueImplementa() {
+        return classeQueImplementa;
+    }
+    
+    public void setClasseQueImplementa(String classeQueImplementa) {
+        this.classeQueImplementa = classeQueImplementa;
+    }
+    
+    public Boolean getTestado() {
+        return testado;
+    }
+    
+    public void setTestado(Boolean testado) {
+        this.testado = testado;
+    }
+    
+    public String getDataTeste() {
+        return dataTeste;
+    }
+    
+    public void setDataTeste(String dataTeste) {
+        this.dataTeste = dataTeste;
+    }
+    
+    public String getResultadoTestes() {
+        return resultadoTestes;
+    }
+    
+    public void setResultadoTestes(String resultadoTestes) {
+        this.resultadoTestes = resultadoTestes;
+    }
+    
+    public String getStatusTeste() {
+        return statusTeste;
+    }
+    
+    public void setStatusTeste(String statusTeste) {
+        this.statusTeste = statusTeste;
+    }
+    
     public String getDescricao() {
         return descricao;
     }
@@ -114,6 +169,7 @@ public class Trabalho {
                 ", matriculaAluno1='" + matriculaAluno1 + '\'' +
                 ", matriculaAluno2='" + matriculaAluno2 + '\'' +
                 ", matriculaAluno3='" + matriculaAluno3 + '\'' +
+                ", classeQueImplementa='" + classeQueImplementa + '\'' +
                 ", descricao='" + descricao + '\'' +
                 ", dataEntrega='" + dataEntrega + '\'' +
                 '}';

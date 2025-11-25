@@ -98,6 +98,10 @@ public class TrabalhoLoaderService {
                 if (matriculas.length == 3) {
                     trabalho.setMatriculaAluno3(matriculas[2]);
                 }
+                
+                // Tenta extrair o nome da classe que implementa AnaliseForenseAvancada
+                String nomeClasse = extrairNomeClasse(caminhoCompleto);
+                trabalho.setClasseQueImplementa(nomeClasse);
 
                 trabalho.setDescricao("Trabalho importado automaticamente da pasta projetos_alunos");
                 trabalho.setDataEntrega(LocalDate.now().format(DateTimeFormatter.ISO_DATE));
@@ -127,5 +131,62 @@ public class TrabalhoLoaderService {
         if (trabalho.getMatriculaAluno2() != null) matriculas.add(trabalho.getMatriculaAluno2());
         if (trabalho.getMatriculaAluno3() != null) matriculas.add(trabalho.getMatriculaAluno3());
         return matriculas;
+    }
+    
+    /**
+     * Extrai o nome da classe que implementa AnaliseForenseAvancada usando Reflections
+     */
+    private String extrairNomeClasse(String caminhoJar) {
+        try {
+            // Cria um URLClassLoader para o JAR
+            java.net.URL jarUrl = new File(caminhoJar).toURI().toURL();
+            java.net.URLClassLoader classLoader = new java.net.URLClassLoader(
+                new java.net.URL[]{jarUrl},
+                this.getClass().getClassLoader()
+            );
+            
+            // Usa Reflections para escanear as classes no JAR
+            org.reflections.Reflections reflections = new org.reflections.Reflections(
+                new org.reflections.util.ConfigurationBuilder()
+                    .setUrls(jarUrl)
+                    .addClassLoaders(classLoader)
+                    .setScanners(org.reflections.scanners.Scanners.SubTypes)
+            );
+            
+            // Procura por classes que implementam AnaliseForenseAvancada
+            // Primeiro tenta carregar a interface
+            try {
+                Class<?> interfaceClass = classLoader.loadClass("br.edu.icev.aed.forense.AnaliseForenseAvancada");
+                
+                // Busca todas as classes que implementam a interface
+                java.util.Set<Class<?>> implementingClasses = reflections.getSubTypesOf((Class<Object>) interfaceClass);
+                
+                if (!implementingClasses.isEmpty()) {
+                    // Pega a primeira classe encontrada
+                    Class<?> implementacao = implementingClasses.iterator().next();
+                    String nomeCompleto = implementacao.getName();
+                    logger.info("Classe extraída do JAR {} usando Reflections: {}", 
+                        new File(caminhoJar).getName(), nomeCompleto);
+                    
+                    classLoader.close();
+                    return nomeCompleto;
+                } else {
+                    logger.warn("Nenhuma classe implementando AnaliseForenseAvancada encontrada no JAR: {}", 
+                        new File(caminhoJar).getName());
+                }
+                
+            } catch (ClassNotFoundException e) {
+                logger.warn("Interface AnaliseForenseAvancada não encontrada no JAR: {}", 
+                    new File(caminhoJar).getName());
+            }
+            
+            classLoader.close();
+            
+        } catch (Exception e) {
+            logger.error("Erro ao extrair nome da classe do JAR {} usando Reflections: {}", 
+                new File(caminhoJar).getName(), e.getMessage());
+        }
+        
+        return null;
     }
 }
