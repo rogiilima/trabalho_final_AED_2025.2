@@ -37,3 +37,4 @@ docs/build/
 projetos_alunos/
 example/
 trabalho2.txt
+spring-app/src/main/resources/application.properties
