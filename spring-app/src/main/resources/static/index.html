@@ -295,7 +295,7 @@
                 <p>Execute os testes em todos os trabalhos de uma vez</p>
                 <div style="margin-bottom: 20px;">
                     <button class="btn btn-test-all" onclick="executarTudoAsync()" style="background: linear-gradient(135deg, #fa8bff 0%, #2bd2ff 90%); color: white; font-size: 1.2em; padding: 15px 40px;">
-                        <i class="fas fa-bolt"></i> EXECUTAR TUDO (Assíncrono)
+                        <i class="fas fa-bolt"></i> EXECUTAR TUDO
                     </button>
                     <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
                         ⚡ Executa testes unitários + eficiência para todos os trabalhos em threads separadas
@@ -607,7 +607,9 @@
         // NOVA FUNÇÃO: Executar TUDO de forma assíncrona
         function executarTudoAsync() {
             if (!confirm(`🚀 EXECUTAR TODOS OS TESTES EM TODOS OS TRABALHOS?\n\n` +
-                        `Esta operação irá:\n` +
+                        `⚠️ ATENÇÃO: Esta operação irá:\n` +
+                        `🗑️  APAGAR todos os testes anteriores\n` +
+                        `🔄 RESETAR o status de todos os trabalhos\n` +
                         `✓ Executar testes UNITÁRIOS (70 pontos)\n` +
                         `✓ Executar testes de EFICIÊNCIA (40 pontos)\n` +
                         `✓ Para TODOS os ${trabalhos.length} trabalhos\n` +

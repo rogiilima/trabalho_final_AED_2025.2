@@ -2,6 +2,7 @@ package br.com.icev.aed.controller;
 
 import br.com.icev.aed.entity.Trabalho;
 import br.com.icev.aed.repository.TrabalhoRepository;
+import br.com.icev.aed.repository.TestesTrabalhoRepository;
 import br.com.icev.aed.service.TrabalhoLoaderService;
 import br.com.icev.aed.service.TesteTrabalhoService;
 import br.com.icev.aed.service.TestesUnitariosService;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,8 +24,13 @@ import java.util.Optional;
 @RequestMapping("/api/trabalhos")
 public class TrabalhoController {
     
+    private static final Logger logger = LoggerFactory.getLogger(TrabalhoController.class);
+    
     @Autowired
     private TrabalhoRepository trabalhoRepository;
+    
+    @Autowired
+    private TestesTrabalhoRepository testesTrabalhoRepository;
     
     @Autowired
     private TrabalhoLoaderService trabalhoLoaderService;
@@ -297,6 +305,22 @@ public class TrabalhoController {
             response.put("status", "INFO");
             return ResponseEntity.ok(response);
         }
+        
+        // APAGA TODOS OS TESTES ANTERIORES
+        logger.info("🗑️  Apagando todos os testes anteriores...");
+        long testesApagados = testesTrabalhoRepository.count();
+        testesTrabalhoRepository.deleteAll();
+        logger.info("✅ {} testes anteriores foram apagados com sucesso!", testesApagados);
+        
+        // Reseta flag de testado em todos os trabalhos
+        for (Trabalho trabalho : trabalhos) {
+            trabalho.setTestado(false);
+            trabalho.setDataTeste(null);
+            trabalho.setResultadoTestes(null);
+            trabalho.setStatusTeste(null);
+            trabalhoRepository.save(trabalho);
+        }
+        logger.info("✅ Status de {} trabalhos resetado!", trabalhos.size());
         
         // Inicia execução assíncrona em thread separada para cada trabalho
         new Thread(() -> {
