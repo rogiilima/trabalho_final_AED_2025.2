@@ -33,3 +33,7 @@ test_*.csv
 # Documentação gerada
 javadoc/
 docs/build/
+
+projetos_alunos/
+example/
+trabalho2.txt

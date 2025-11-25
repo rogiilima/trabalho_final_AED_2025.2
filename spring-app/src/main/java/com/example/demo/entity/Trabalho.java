@@ -1,0 +1,121 @@
+package com.example.demo.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "trabalhos")
+public class Trabalho {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false)
+    private String titulo;
+    
+    @Column(name = "caminho_para_jar", nullable = false)
+    private String caminhoParaJar;
+    
+    @Column(name = "matricula_aluno1", nullable = false)
+    private String matriculaAluno1;
+    
+    @Column(name = "matricula_aluno2")
+    private String matriculaAluno2;
+    
+    @Column(name = "matricula_aluno3")
+    private String matriculaAluno3;
+    
+    @Column(columnDefinition = "TEXT")
+    private String descricao;
+    
+    @Column(name = "data_entrega")
+    private String dataEntrega;
+    
+    // Construtores
+    public Trabalho() {}
+    
+    public Trabalho(String titulo, String caminhoParaJar, String matriculaAluno1) {
+        this.titulo = titulo;
+        this.caminhoParaJar = caminhoParaJar;
+        this.matriculaAluno1 = matriculaAluno1;
+    }
+    
+    // Getters e Setters
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    public String getTitulo() {
+        return titulo;
+    }
+    
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+    
+    public String getCaminhoParaJar() {
+        return caminhoParaJar;
+    }
+    
+    public void setCaminhoParaJar(String caminhoParaJar) {
+        this.caminhoParaJar = caminhoParaJar;
+    }
+    
+    public String getMatriculaAluno1() {
+        return matriculaAluno1;
+    }
+    
+    public void setMatriculaAluno1(String matriculaAluno1) {
+        this.matriculaAluno1 = matriculaAluno1;
+    }
+    
+    public String getMatriculaAluno2() {
+        return matriculaAluno2;
+    }
+    
+    public void setMatriculaAluno2(String matriculaAluno2) {
+        this.matriculaAluno2 = matriculaAluno2;
+    }
+    
+    public String getMatriculaAluno3() {
+        return matriculaAluno3;
+    }
+    
+    public void setMatriculaAluno3(String matriculaAluno3) {
+        this.matriculaAluno3 = matriculaAluno3;
+    }
+    
+    public String getDescricao() {
+        return descricao;
+    }
+    
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+    
+    public String getDataEntrega() {
+        return dataEntrega;
+    }
+    
+    public void setDataEntrega(String dataEntrega) {
+        this.dataEntrega = dataEntrega;
+    }
+    
+    @Override
+    public String toString() {
+        return "Trabalho{" +
+                "id=" + id +
+                ", titulo='" + titulo + '\'' +
+                ", caminhoParaJar='" + caminhoParaJar + '\'' +
+                ", matriculaAluno1='" + matriculaAluno1 + '\'' +
+                ", matriculaAluno2='" + matriculaAluno2 + '\'' +
+                ", matriculaAluno3='" + matriculaAluno3 + '\'' +
+                ", descricao='" + descricao + '\'' +
+                ", dataEntrega='" + dataEntrega + '\'' +
+                '}';
+    }
+}
